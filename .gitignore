@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Data (never commit data; use scripts/download_data.py)
+data/**
+!data/**/
+!data/**/.gitkeep
+
+# MLflow / artifacts / models
+mlruns/
+mlartifacts/
+*.pkl
+*.joblib
+*.onnx
+*.pt
+*.safetensors
+
+# Secrets & local
+.env
+.DS_Store
+.ipynb_checkpoints/
+reports/

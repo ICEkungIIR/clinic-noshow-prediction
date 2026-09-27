@@ -1,0 +1,20 @@
+# Single source of truth for pipeline parameters (logged to MLflow on every run)
+seed: 42
+
+data:
+  # TODO(data workstream): set the verified Traffy Fondue CSV URL and its SHA-256
+  source_url: ""
+  sha256: ""
+  raw_path: data/raw/traffy.csv
+  processed_dir: data/processed
+
+split:  # time-based split on `timestamp` (fill after EDA)
+  train_end: ""
+  val_end: ""
+
+model:
+  name: baseline_tfidf_lr
+  params: {}
+
+registry:
+  model_name: urban-complaint-triage

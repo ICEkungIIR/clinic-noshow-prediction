@@ -1,0 +1,49 @@
+[project]
+name = "urban-complaint-triage"
+version = "0.1.0"
+description = "Real-Time Urban Complaint Triage System (Traffy Fondue) - CP413008 ML Engineering for Production"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "pandas>=2.2",
+    "numpy",
+    "pyarrow",
+    "pyyaml",
+    "requests",
+    "pythainlp",
+    "scikit-learn",
+    "lightgbm",
+    "pandera",
+    "mlflow",
+    "prefect",
+    "evidently",
+    "fastapi",
+    "uvicorn[standard]",
+    "pydantic>=2",
+    "prometheus-client",
+]
+
+[project.optional-dependencies]
+# Heavy deps for experiment 3 (WangchanBERTa). Install with: uv sync --extra bert
+bert = ["torch", "transformers", "onnxruntime"]
+
+[dependency-groups]
+dev = ["ruff", "pytest", "httpx", "locust"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/triage"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

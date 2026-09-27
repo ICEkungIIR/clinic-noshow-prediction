@@ -1,0 +1,11 @@
+# Service Level Objectives (measured with Locust + Prometheus)
+latency_p95_ms: 300
+latency_p50_ms: 100
+error_rate_max: 0.01
+availability_min: 0.99
+
+# Gating metrics (must pass before a model is promoted)
+gate:
+  min_macro_f1: null          # set after baseline
+  min_urgent_recall: 0.85
+  max_model_size_mb: 500
