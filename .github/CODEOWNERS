@@ -1,10 +1,17 @@
-# Default owner (tech lead). Replace <placeholders> with GitHub usernames when collected.
+# Default owner (tech lead)
 * @ICEkungIIR
 
-# /src/noshow/data/ /scripts/                 @<peerapong>  (พีรพงษ์)
-# /src/noshow/features/ /src/noshow/models/   @<thun>       (ธันว์)
-# /src/noshow/registry/ /src/noshow/pipeline/ @<kittinan>   (กิตตินันท์)
-# /configs/ /docs/ /README.md                 @ICEkungIIR   (ศรัณยู)
-# /src/noshow/serving/ /docker/               @<phurin>     (ภูรินทร์)
-# /src/noshow/monitoring/ /monitoring/        @<teechanon>  (ฑีฌานนท์)
-# /.github/workflows/ /tests/                 @<nantapong>  (ณันทพงศ์)
+/src/noshow/data/           @Phiraphongth  # พีรพงษ์
+/scripts/                   @Phiraphongth  # พีรพงษ์
+/src/noshow/features/       @Thundercodhod  # ธันว์
+/src/noshow/models/         @Thundercodhod  # ธันว์
+/src/noshow/registry/       @kittinunk-pixel  # กิตตินันท์
+/src/noshow/pipeline/       @kittinunk-pixel  # กิตตินันท์
+/configs/                   @ICEkungIIR  # ศรัณยู
+/docs/                      @ICEkungIIR  # ศรัณยู
+/README.md                  @ICEkungIIR  # ศรัณยู
+/src/noshow/monitoring/     @ICEkungIIR  # ฑีฌานนท์ (TODO: username)
+/monitoring/                @ICEkungIIR  # ฑีฌานนท์ (TODO: username)
+/.github/workflows/         @nantapongpa-a11y  # ณันทพงศ์
+/tests/                     @nantapongpa-a11y  # ณันทพงศ์
+# /src/noshow/serving/ /docker/               @phurinsr-ux        # ภูรินทร์ (เปิดเมื่อรับ invite แล้ว)
