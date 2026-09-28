@@ -8,12 +8,12 @@
 
 | # | รหัสนักศึกษา | ชื่อ-นามสกุล | Sec | Workstream |
 |---|---|---|---|---|
-| 1 | 673380078-7 | นายธันว์ สว่างศรี | 2 | Data & Validation: ingest, time-based split, Pandera schema, bad-data demo, drift datasets |
-| 2 | 673380526-6 | นายพีรพงษ์ ทองฤทธิ์ | 2 | Features & Modeling: shared preprocessing, baseline + experiments ≥ 3 รอบ, SHAP |
+| 1 | 673380078-7 | นายธันว์ สว่างศรี | 2 | Features & Modeling: shared preprocessing, baseline + experiments ≥ 3 รอบ, SHAP |
+| 2 | 673380526-6 | นายพีรพงษ์ ทองฤทธิ์ | 2 | Data & Validation: ingest, time-based split, Pandera schema, bad-data demo, drift datasets |
 | 3 | 673380306-0 | นายกิตตินันท์ ไขไพรวัน | 1 | Tracking, Registry & Pipeline: MLflow tracking/registry, gate, rollback, Prefect DAG |
 | 4 | 673380532-1 | นายศรัณยู เจริญผล | 1 | Tech lead / Integration: AI Project Canvas, metrics ↔ business KPI, architecture, README, report |
-| 5 | 673380075-3 | นายฑีฌานนท์ อัศวะภูมิ | 2 | Serving & Infra: FastAPI real-time + batch, Docker, load test p50/p95, SLO |
-| 6 | 673380528-2 | นายภูรินทร์ ศรีฐาน | 1 | Monitoring: Evidently data/concept drift, Prometheus + Grafana, alerts, retraining policy |
+| 5 | 673380075-3 | นายฑีฌานนท์ อัศวะภูมิ | 2 | Monitoring: Evidently data/concept drift, Prometheus + Grafana, alerts, retraining policy |
+| 6 | 673380528-2 | นายภูรินทร์ ศรีฐาน | 1 | Serving & Infra: FastAPI real-time + batch, Docker, load test p50/p95, SLO |
 | 7 | 673380313-3 | นายณันทพงศ์ พยัคมะเริง | 2 | CI/CD & Testing: GitHub Actions (code quality, data validation, model gate), test cases |
 
 ## Quickstart (จากเครื่องเปล่า)
