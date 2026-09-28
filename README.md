@@ -8,13 +8,13 @@
 
 | # | รหัสนักศึกษา | ชื่อ-นามสกุล | Sec | Workstream |
 |---|---|---|---|---|
-| 1 | 673380078-7 | นายธันว์ สว่างศรี | 2 | Serving (FastAPI real-time + batch), Docker, Load test p50/p95, SLO |
-| 2 | 673380526-6 | นายพีรพงษ์ ทองฤทธิ์ | 2 | Pipeline orchestration (Prefect DAG, `make pipeline`) |
-| 3 | 673380306-0 | นายกิตตินันท์ ไขไพรวัน | 1 | Data ingestion, time-based split, Pandera schema, bad-data demo |
-| 4 | 673380532-1 | นายศรัณยู เจริญผล | 1 | Tech lead / Integration, Features (shared preprocessing), Modeling + MLflow tracking |
-| 5 | 673380075-3 | นายฑีฌานนท์ อัศวะภูมิ | 2 | Monitoring (Evidently data/concept drift, Grafana), retraining policy |
-| 6 | 673380528-2 | นายภูรินทร์ ศรีฐาน | 1 | CI/CD (3 checks), model gate, registry, rollback |
-| 7 | 673380313-3 | นายณันทพงศ์ พยัคมะเริง | 2 | AI Project Canvas, metrics ↔ business KPI, architecture diagram, report |
+| 1 | 673380532-1 | นายศรัณยู เจริญผล | 1 | Lead / Framing / Integration |
+| 2 | 673380526-6 | นายพีรพงษ์ ทองฤทธิ์ | 2 | Data & Validation |
+| 3 | 673380078-7 | นายธันว์ สว่างศรี | 2 | Features & Modeling |
+| 4 | 673380306-0 | นายกิตตินันท์ ไขไพรวัน | 1 | Tracking, Registry & Pipeline |
+| 5 | 673380528-2 | นายภูรินทร์ ศรีฐาน | 1 | Serving & Infra |
+| 6 | 673380075-3 | นายฑีฌานนท์ อัศวะภูมิ | 2 | Monitoring |
+| 7 | 673380313-3 | นายณันทพงศ์ พยัคมะเริง | 2 | CI/CD & Testing |
 
 ## Quickstart (จากเครื่องเปล่า)
 
