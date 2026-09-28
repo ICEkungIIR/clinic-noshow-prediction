@@ -1,10 +1,10 @@
-# Default owner (tech lead). Replace placeholders with GitHub usernames when collected.
+# Default owner (tech lead). Replace <placeholders> with GitHub usernames when collected.
 * @ICEkungIIR
 
-# /src/noshow/data/                       @<kittinan>   (กิตตินันท์)
-# /src/noshow/serving/ /docker/           @<thun>       (ธันว์)
-# /src/noshow/pipeline/                   @<peerapong>  (พีรพงษ์)
-# /src/noshow/models/ /src/noshow/features/  @ICEkungIIR (ศรัณยู)
-# /src/noshow/monitoring/ /monitoring/    @<teechanon>  (ฑีฌานนท์)
-# /.github/workflows/ /src/noshow/registry/ @<phurin>   (ภูรินทร์)
-# /configs/ /docs/                        @<nantapong>  (ณันทพงศ์)
+# /src/noshow/data/ /scripts/                 @<thun>       (ธันว์)
+# /src/noshow/features/ /src/noshow/models/   @<peerapong>  (พีรพงษ์)
+# /src/noshow/registry/ /src/noshow/pipeline/ @<kittinan>   (กิตตินันท์)
+# /configs/ /docs/ /README.md                 @ICEkungIIR   (ศรัณยู)
+# /src/noshow/serving/ /docker/               @<teechanon>  (ฑีฌานนท์)
+# /src/noshow/monitoring/ /monitoring/        @<phurin>     (ภูรินทร์)
+# /.github/workflows/ /tests/                 @<nantapong>  (ณันทพงศ์)

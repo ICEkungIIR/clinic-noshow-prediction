@@ -8,18 +8,18 @@
 
 | # | รหัสนักศึกษา | ชื่อ-นามสกุล | Sec | Workstream |
 |---|---|---|---|---|
-| 1 | 673380078-7 | นายธันว์ สว่างศรี | 2 | Serving (FastAPI real-time + batch), Docker, Load test p50/p95, SLO |
-| 2 | 673380526-6 | นายพีรพงษ์ ทองฤทธิ์ | 2 | Pipeline orchestration (Prefect DAG, `make pipeline`) |
-| 3 | 673380306-0 | นายกิตตินันท์ ไขไพรวัน | 1 | Data ingestion, time-based split, Pandera schema, bad-data demo |
-| 4 | 673380532-1 | นายศรัณยู เจริญผล | 1 | Tech lead / Integration, Features (shared preprocessing), Modeling + MLflow tracking |
-| 5 | 673380075-3 | นายฑีฌานนท์ อัศวะภูมิ | 2 | Monitoring (Evidently data/concept drift, Grafana), retraining policy |
-| 6 | 673380528-2 | นายภูรินทร์ ศรีฐาน | 1 | CI/CD (3 checks), model gate, registry, rollback |
-| 7 | 673380313-3 | นายณันทพงศ์ พยัคมะเริง | 2 | AI Project Canvas, metrics ↔ business KPI, architecture diagram, report |
+| 1 | 673380078-7 | นายธันว์ สว่างศรี | 2 | Data & Validation: ingest, time-based split, Pandera schema, bad-data demo, drift datasets |
+| 2 | 673380526-6 | นายพีรพงษ์ ทองฤทธิ์ | 2 | Features & Modeling: shared preprocessing, baseline + experiments ≥ 3 รอบ, SHAP |
+| 3 | 673380306-0 | นายกิตตินันท์ ไขไพรวัน | 1 | Tracking, Registry & Pipeline: MLflow tracking/registry, gate, rollback, Prefect DAG |
+| 4 | 673380532-1 | นายศรัณยู เจริญผล | 1 | Tech lead / Integration: AI Project Canvas, metrics ↔ business KPI, architecture, README, report |
+| 5 | 673380075-3 | นายฑีฌานนท์ อัศวะภูมิ | 2 | Serving & Infra: FastAPI real-time + batch, Docker, load test p50/p95, SLO |
+| 6 | 673380528-2 | นายภูรินทร์ ศรีฐาน | 1 | Monitoring: Evidently data/concept drift, Prometheus + Grafana, alerts, retraining policy |
+| 7 | 673380313-3 | นายณันทพงศ์ พยัคมะเริง | 2 | CI/CD & Testing: GitHub Actions (code quality, data validation, model gate), test cases |
 
 ## Quickstart (จากเครื่องเปล่า)
 
-ต้องมี [uv](https://docs.astral.sh/uv/), Docker และ Kaggle account
-(ตั้ง `~/.kaggle/kaggle.json` หรือ env `KAGGLE_USERNAME` / `KAGGLE_KEY` หากดาวน์โหลดแบบไม่ login ไม่ได้)
+ต้องมี [uv](https://docs.astral.sh/uv/) และ Docker เท่านั้น
+`make data` ดาวน์โหลดจาก Kaggle ได้โดยไม่ต้อง login (ถ้าเจอ rate limit ให้ตั้ง env `KAGGLE_USERNAME` / `KAGGLE_KEY`)
 
 ```bash
 git clone https://github.com/ICEkungIIR/urban-complaint-triage.git && cd urban-complaint-triage
@@ -40,11 +40,15 @@ curl localhost:8000/health
 
 ## ข้อตกลงหลักของทีม
 
-- **Target:** `No-show == "Yes"` → 1 (ผู้ป่วยไม่มา) ประมาณ 20% ของข้อมูล
-- **Split:** ตามเวลา `AppointmentDay` (ดู `configs/params.yaml`) ห้ามสุ่ม
-- **Optimizing metric:** PR-AUC ของคลาส no-show; **Gating:** ดู `configs/slo.yaml`
+- **Target:** `No-show == "Yes"` → 1 (ผู้ป่วยไม่มา) 20.2% ของข้อมูล
+- **Data version:** v1 = SHA-256 `9132d3e7d0246617df9041d3764f20ad6f08e7b0d9f0997fa254fc5e52eda27d` (110,527 rows)
+- **Split ตามเวลา `AppointmentDay` (ห้ามสุ่ม):** train ≤ 2016-05-20 (61%), val ≤ 2016-05-31 (15%), test ถึง 2016-06-08 (24%)
+- **Optimizing metric:** PR-AUC ของคลาส no-show
+- **Gating metric:** no-show recall ≥ 0.60, ขนาดโมเดล ≤ 100 MB, PR-AUC ต้องไม่ต่ำกว่าโมเดล Production
+- **SLO:** p50 ≤ 50 ms, p95 ≤ 200 ms, error rate ≤ 1%, availability ≥ 99%
 - **Preprocessing:** โค้ดชุดเดียวใน `src/noshow/features/` ใช้ทั้งตอน train และ serve
 - **Registry model name:** `clinic-noshow`
+- ค่าทั้งหมดอ้างอิงจาก `configs/params.yaml` และ `configs/slo.yaml` (แก้ที่นั่นที่เดียว)
 
 ## Git workflow
 
