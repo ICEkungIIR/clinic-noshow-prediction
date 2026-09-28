@@ -1,7 +1,10 @@
-.PHONY: setup lint format test up down logs api pipeline loadtest
+.PHONY: setup data lint format test up down logs api pipeline loadtest
 
 setup:      ## install Python 3.11 + locked dependencies
 	uv sync
+
+data:       ## download dataset from Kaggle + verify SHA-256
+	uv run python scripts/download_data.py
 
 lint:
 	uv run ruff check .
@@ -24,7 +27,7 @@ logs:
 	docker compose logs -f --tail=100
 
 api:        ## run API locally without Docker
-	uv run uvicorn triage.serving.app:app --reload --port 8000
+	uv run uvicorn noshow.serving.app:app --reload --port 8000
 
 pipeline:   ## TODO(pipeline workstream): end-to-end Prefect DAG
 	@echo "not implemented yet"

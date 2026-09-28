@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from triage.serving.app import app
+from noshow.serving.app import app
 
 client = TestClient(app)
 
@@ -15,4 +15,4 @@ def test_metrics_exposed():
     client.get("/health")
     resp = client.get("/metrics")
     assert resp.status_code == 200
-    assert "triage_requests_total" in resp.text
+    assert "noshow_requests_total" in resp.text

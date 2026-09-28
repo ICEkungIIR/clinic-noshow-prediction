@@ -9,12 +9,12 @@ import time
 from fastapi import FastAPI, Request, Response
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
-from triage import __version__
+from noshow import __version__
 
-app = FastAPI(title="Urban Complaint Triage API", version=__version__)
+app = FastAPI(title="Clinic No-Show Prediction API", version=__version__)
 
-REQUESTS = Counter("triage_requests_total", "HTTP requests", ["path", "method", "status"])
-LATENCY = Histogram("triage_request_latency_seconds", "Request latency in seconds", ["path"])
+REQUESTS = Counter("noshow_requests_total", "HTTP requests", ["path", "method", "status"])
+LATENCY = Histogram("noshow_request_latency_seconds", "Request latency in seconds", ["path"])
 
 
 @app.middleware("http")
