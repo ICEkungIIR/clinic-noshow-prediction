@@ -2,19 +2,25 @@
 seed: 42
 
 data:
-  # TODO(data workstream): set the verified Traffy Fondue CSV URL and its SHA-256
-  source_url: ""
-  sha256: ""
-  raw_path: data/raw/traffy.csv
+  # Kaggle: joniarroba/noshowappointments (110,527 appointments, Brazil, Apr-Jun 2016)
+  kaggle_dataset: joniarroba/noshowappointments
+  kaggle_file: KaggleV2-May-2016.csv
+  sha256: "9132d3e7d0246617df9041d3764f20ad6f08e7b0d9f0997fa254fc5e52eda27d"  # data version v1
+  raw_path: data/raw/noshow.csv
   processed_dir: data/processed
 
-split:  # time-based split on `timestamp` (fill after EDA)
-  train_end: ""
-  val_end: ""
+split:  # time-based split on AppointmentDay (no random split: avoids temporal leakage)
+  train_end: "2016-05-20"   # TODO(data workstream): confirm after EDA
+  val_end: "2016-05-31"
+  group_col: PatientId      # check patient overlap across splits
+
+target:
+  column: No-show           # "Yes" = patient did NOT show up -> positive class 1
+  positive_label: "Yes"
 
 model:
-  name: baseline_tfidf_lr
+  name: baseline_logreg
   params: {}
 
 registry:
-  model_name: urban-complaint-triage
+  model_name: clinic-noshow

@@ -1,11 +1,13 @@
 # Service Level Objectives (measured with Locust + Prometheus)
-latency_p95_ms: 300
-latency_p50_ms: 100
+latency_p95_ms: 200
+latency_p50_ms: 50
 error_rate_max: 0.01
 availability_min: 0.99
 
-# Gating metrics (must pass before a model is promoted)
+# Optimizing metric: PR-AUC on the no-show class (imbalanced, ~20% positive)
+# Gating metrics (must ALL pass before a model is promoted to Production)
 gate:
-  min_macro_f1: null          # set after baseline
-  min_urgent_recall: 0.85
-  max_model_size_mb: 500
+  min_pr_auc: null            # set to baseline PR-AUC after first run
+  min_noshow_recall: 0.60     # at the chosen decision threshold
+  max_model_size_mb: 100
+  must_beat_production: true  # candidate PR-AUC >= current Production PR-AUC

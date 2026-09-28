@@ -1,11 +1,10 @@
-# Default owner (tech lead). Per-folder owners are added once all GitHub usernames are collected.
+# Default owner (tech lead). Replace placeholders with GitHub usernames when collected.
 * @ICEkungIIR
 
-# TODO: replace with GitHub usernames
-# /src/triage/data/        @kittinan          (กิตตินันท์)
-# /src/triage/serving/ /docker/   @thun      (ธันว์)
-# /src/triage/pipeline/    @peerapong         (พีรพงษ์)
-# /src/triage/models/      @ICEkungIIR        (ศรัณยู)
-# /src/triage/monitoring/ /monitoring/  @teechanon (ฑีฌานนท์)
-# /.github/workflows/      @phurin            (ภูรินทร์)
-# /configs/                @nantapong         (ณันทพงศ์)
+# /src/noshow/data/                       @<kittinan>   (กิตตินันท์)
+# /src/noshow/serving/ /docker/           @<thun>       (ธันว์)
+# /src/noshow/pipeline/                   @<peerapong>  (พีรพงษ์)
+# /src/noshow/models/ /src/noshow/features/  @ICEkungIIR (ศรัณยู)
+# /src/noshow/monitoring/ /monitoring/    @<teechanon>  (ฑีฌานนท์)
+# /.github/workflows/ /src/noshow/registry/ @<phurin>   (ภูรินทร์)
+# /configs/ /docs/                        @<nantapong>  (ณันทพงศ์)
