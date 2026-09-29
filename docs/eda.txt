@@ -1,0 +1,88 @@
+﻿=== 1. Size ===
+rows: 110527 columns: 14
+PatientId         float64
+AppointmentID       int64
+Gender                str
+ScheduledDay          str
+AppointmentDay        str
+Age                 int64
+Neighbourhood         str
+Scholarship         int64
+Hipertension        int64
+Diabetes            int64
+Alcoholism          int64
+Handcap             int64
+SMS_received        int64
+No-show               str
+dtype: object
+
+=== 2. No-show ===
+No-show
+No     88208
+Yes    22319
+Name: count, dtype: int64
+No-show
+No     0.798067
+Yes    0.201933
+Name: proportion, dtype: float64
+
+=== 3. Time range ===
+ScheduledDay: 2015-11-10 07:13:56+00:00 to 2016-06-08 20:07:23+00:00
+AppointmentDay: 2016-04-29 00:00:00+00:00 to 2016-06-08 00:00:00+00:00
+AppointmentDay
+2016-04-29 00:00:00+00:00    3235
+2016-05-02 00:00:00+00:00    4376
+2016-05-03 00:00:00+00:00    4256
+2016-05-04 00:00:00+00:00    4168
+2016-05-05 00:00:00+00:00    4273
+2016-05-06 00:00:00+00:00    3879
+2016-05-09 00:00:00+00:00    4520
+2016-05-10 00:00:00+00:00    4308
+2016-05-11 00:00:00+00:00    4474
+2016-05-12 00:00:00+00:00    4394
+2016-05-13 00:00:00+00:00    3987
+2016-05-14 00:00:00+00:00      39
+2016-05-16 00:00:00+00:00    4613
+2016-05-17 00:00:00+00:00    4372
+2016-05-18 00:00:00+00:00    4373
+2016-05-19 00:00:00+00:00    4270
+2016-05-20 00:00:00+00:00    3828
+2016-05-24 00:00:00+00:00    4009
+2016-05-25 00:00:00+00:00    3909
+2016-05-30 00:00:00+00:00    4514
+2016-05-31 00:00:00+00:00    4279
+2016-06-01 00:00:00+00:00    4464
+2016-06-02 00:00:00+00:00    4310
+2016-06-03 00:00:00+00:00    4090
+2016-06-06 00:00:00+00:00    4692
+2016-06-07 00:00:00+00:00    4416
+2016-06-08 00:00:00+00:00    4479
+Name: count, dtype: int64
+
+=== 4. Missing / duplicates ===
+missing values: 0
+duplicate rows: 0
+duplicate AppointmentID: 0
+
+=== 5. Patients ===
+unique patients: 62299
+patients with > 1 appointment: 24379
+max appointments per patient: 88
+non-integer PatientId: 5
+
+=== 6. Data quality ===
+Age < 0: 1
+Age > 100: 7
+Handcap values:
+Handcap
+0    108286
+1      2042
+2       183
+3        13
+4         3
+Name: count, dtype: int64
+ScheduledDay after AppointmentDay: 5
+
+=== 7. Split ===
+train: 67365 val: 16711 test: 26451
+patient overlap: {'train_val': 6565, 'train_test': 9350, 'val_test': 3657}
