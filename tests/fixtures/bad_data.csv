@@ -1,0 +1,2 @@
+PatientId,AppointmentID,Gender,ScheduledDay,AppointmentDay,Age,Neighbourhood,Scholarship,Hipertension,Diabetes,Alcoholism,Handcap,SMS_received,No-show
+2001,6000001,X,2016-04-29T18:38:08Z,2016-04-29T00:00:00Z,500,CENTRO,0,0,0,0,0,0,Maybe
