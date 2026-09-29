@@ -10,7 +10,7 @@ data:
   processed_dir: data/processed
 
 split:  # time-based split on AppointmentDay (no random split: avoids temporal leakage)
-  train_end: "2016-05-20"   # TODO(data workstream): confirm after EDA
+  train_end: "2016-05-20"   # confirmed by EDA (docs/data_decision.md)
   val_end: "2016-05-31"
   group_col: PatientId      # check patient overlap across splits
 
