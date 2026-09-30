@@ -42,7 +42,8 @@ curl localhost:8000/health
 
 - **Target:** `No-show == "Yes"` → 1 (ผู้ป่วยไม่มา) ประมาณ 20% ของข้อมูล
 - **Split:** ตามเวลา `AppointmentDay` (ดู `configs/params.yaml`) ห้ามสุ่ม
-- **Optimizing metric:** PR-AUC ของคลาส no-show; **Gating:** ดู `configs/slo.yaml`
+- **Optimizing metric สำหรับงานส่งเตือน:** no-show recall ที่ threshold 0.5; ทีมเลือก Exp 2
+  โดยใช้ PR-AUC เป็นเกณฑ์ขั้นต่ำและรายงาน precision/จำนวนคนที่ต้องเตือนด้วย (ดู `configs/slo.yaml`)
 - **Preprocessing:** โค้ดชุดเดียวใน `src/noshow/features/` ใช้ทั้งตอน train และ serve
 - **Registry model name:** `clinic-noshow`
 

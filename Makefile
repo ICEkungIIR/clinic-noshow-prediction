@@ -1,10 +1,13 @@
-.PHONY: setup data lint format test up down logs api pipeline loadtest
+.PHONY: setup data train lint format test up down logs api pipeline loadtest
 
 setup:      ## install Python 3.11 + locked dependencies
 	uv sync
 
 data:       ## download dataset from Kaggle + verify SHA-256
 	uv run python scripts/download_data.py
+
+train:      ## run all three experiments and log them to MLflow
+	uv run python -m noshow.models.train
 
 lint:
 	uv run ruff check .
