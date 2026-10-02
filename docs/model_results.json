@@ -1,10 +1,10 @@
 {
   "selected_model": "exp2_lightgbm_balanced",
   "selected_threshold": 0.5,
-  "selected_run_id": "c48a00908bbf407b85a119caf6555af7",
-  "selected_model_uri": "models:/m-de9e29db9b1648ba8b9cce4c3aa02191",
-  "reason": "Team selected higher no-show recall for reminder outreach; the selected run passes validation recall and PR-AUC gates.",
-  "git_sha": "9e67fd8b5e8aba2a79de75ad730d52209646a453",
+  "selected_run_id": "22a642b09f4c4c02a294c1ceb67e047d",
+  "selected_model_uri": "models:/m-c182fd22c9224f25a67e7da3f231c9e2",
+  "reason": "Team-selected model; pending registry gate.",
+  "git_sha": "4e311f35557d512a4a1118c815d9e64191fd98bf",
   "data_sha256": "9132d3e7d0246617df9041d3764f20ad6f08e7b0d9f0997fa254fc5e52eda27d",
   "experiments": {
     "exp1_logistic_regression": {
