@@ -1,5 +1,3 @@
-"""Evaluate registered models on the same validation data."""
-
 from __future__ import annotations
 
 import argparse
@@ -103,14 +101,14 @@ def evaluate_version(client, version, X_val, y_val, data_sha, sizes, config) -> 
     }
 
 
-def check_gate(tracking_uri: str) -> dict:
+def check_gate(tracking_uri: str, model_name: str | None = None) -> dict:
     mlflow.set_tracking_uri(tracking_uri)
     mlflow.set_registry_uri(tracking_uri)
     client = MlflowClient(tracking_uri=tracking_uri, registry_uri=tracking_uri)
     config = yaml.safe_load((ROOT / "configs/params.yaml").read_text(encoding="utf-8"))
     limits = yaml.safe_load((ROOT / "configs/slo.yaml").read_text(encoding="utf-8"))["gate"]
 
-    name = config["registry"]["model_name"]
+    name = model_name or config["registry"]["model_name"]
     candidate = client.get_model_version_by_alias(name, "challenger")
     registered = client.get_registered_model(name)
     champion_version = registered.aliases.get("champion")
