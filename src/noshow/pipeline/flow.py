@@ -172,6 +172,35 @@ def deploy_model(promotion: dict) -> dict:
     return result
 
 
+def send_discord_alert(message: str) -> None:
+    webhook = os.getenv("PIPELINE_DISCORD_WEBHOOK_URL", "").strip()
+    if not webhook:
+        print("Discord notification skipped: webhook is not configured")
+        return
+
+    separator = "&" if "?" in webhook else "?"
+    payload = {
+        "content": message[:2000],
+        "allowed_mentions": {"parse": []},
+    }
+
+    try:
+        request = Request(
+            f"{webhook}{separator}wait=true",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "User-Agent": "Clinic-NoShow-Pipeline/0.1",
+            },
+            method="POST",
+        )
+        with urlopen(request, timeout=15) as response:
+            response.read()
+        print("Discord failure notification sent")
+    except Exception as exc:
+        print(f"Discord notification failed ({type(exc).__name__})")
+
+
 def notify_failure(flow, flow_run, state) -> None:
     message = (
         f"Flow: {flow.name}\n\n"
@@ -181,11 +210,17 @@ def notify_failure(flow, flow_run, state) -> None:
         f"Reason: {state.message}"
     )
     print(f"PIPELINE FAILURE\n{message}")
-    create_markdown_artifact(
-        key="clinic-noshow-pipeline-failure",
-        markdown=message,
-        description="Pipeline failure report",
-    )
+
+    try:
+        create_markdown_artifact(
+            key="clinic-noshow-pipeline-failure",
+            markdown=message,
+            description="Pipeline failure report",
+        )
+    except Exception as exc:
+        print(f"Failure artifact creation failed ({type(exc).__name__})")
+
+    send_discord_alert(f"PIPELINE FAILURE\n{message}")
 
 
 @flow(
