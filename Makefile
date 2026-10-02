@@ -44,5 +44,5 @@ LT_HOST ?= http://localhost:8000
 loadtest:   ## Locust p50/p95/throughput vs configs/slo.yaml -> docs/loadtest_report.md
 	mkdir -p loadtest/results
 	uv run locust -f loadtest/locustfile.py --host $(LT_HOST) --headless \
-		-u $(LT_USERS) -r $(LT_RATE) -t $(LT_TIME) --csv loadtest/results/run --only-summary
+		--users $(LT_USERS) --spawn-rate $(LT_RATE) --run-time $(LT_TIME) --csv loadtest/results/run
 	uv run python scripts/check_slo.py loadtest/results/run --users $(LT_USERS) --duration $(LT_TIME)

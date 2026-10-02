@@ -52,6 +52,10 @@ def main() -> int:
 
     slo = yaml.safe_load((ROOT / "configs" / "slo.yaml").read_text(encoding="utf-8"))
     rows = load_rows(args.prefix)
+
+    if "POST /predict" not in rows or int(rows["Aggregated"]["Request Count"]) == 0:
+        sys.exit(f"No /predict requests in {args.prefix}_stats.csv - did locust run?")
+
     predict = summarize(rows["POST /predict"])
     overall = summarize(rows["Aggregated"])
 
