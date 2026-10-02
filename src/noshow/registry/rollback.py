@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+from urllib.request import Request, urlopen
 
 from mlflow import MlflowClient
 
@@ -45,8 +46,29 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--tracking-uri", default="http://localhost:5001")
     parser.add_argument("--model-name", default="clinic-noshow")
+    parser.add_argument("--api-url", help="Reload the serving API after rollback")
     args = parser.parse_args()
-    print(json.dumps(rollback(args.tracking_uri, args.model_name), indent=2))
+
+    if args.api_url and args.model_name != "clinic-noshow":
+        parser.error("--api-url supports only the clinic-noshow serving model")
+
+    result = rollback(args.tracking_uri, args.model_name)
+    print(json.dumps(result, indent=2), flush=True)
+
+    if args.api_url:
+        request = Request(
+            f"{args.api_url.rstrip('/')}/reload",
+            method="POST",
+        )
+        with urlopen(request, timeout=120) as response:
+            deployment = json.load(response)
+
+        expected = str(result["champion_version"])
+        loaded = str(deployment.get("model_version"))
+        if loaded != expected:
+            raise RuntimeError(f"API loaded version {loaded}; expected rollback version {expected}")
+
+        print(json.dumps({"deployment": deployment}, indent=2))
 
 
 if __name__ == "__main__":
