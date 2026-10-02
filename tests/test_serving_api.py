@@ -85,5 +85,21 @@ def test_metrics_count_predictions(loaded, valid):
     text = client.get("/metrics").text
     assert "noshow_predictions_total" in text
     assert "noshow_prediction_score" in text
-    info = next(line for line in text.splitlines() if line.startswith("noshow_model_info{"))
-    assert 'version="test"' in info and 'threshold="0.5"' in info
+    info = [line for line in text.splitlines() if line.startswith("noshow_model_info{")]
+    served = [line for line in info if 'version="test"' in line and 'threshold="0.5"' in line]
+    assert served and served[0].endswith(" 1.0")  # the served version is marked 1
+
+
+def test_health_shows_worker_pid(loaded):
+    assert isinstance(client.get("/health").json()["pid"], int)
+
+
+def test_batch_endpoint_matches_single_predictions(loaded, valid):
+    """/predict and /predict_batch go through the micro-batcher; scores must be identical.
+    Concurrent batching itself is tested in test_serving_performance.py."""
+    payloads = [{**valid, "PatientId": 3000.0 + i, "Age": 20 + i} for i in range(20)]
+    one_by_one = [client.post("/predict", json=p).json() for p in payloads]
+    batch = client.post("/predict_batch", json={"appointments": payloads}).json()["predictions"]
+    for single, batched in zip(one_by_one, batch, strict=True):
+        assert single["PatientId"] == batched["PatientId"]
+        assert single["noshow_score"] == pytest.approx(batched["noshow_score"], abs=1e-6)
