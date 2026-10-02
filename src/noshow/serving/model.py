@@ -9,6 +9,7 @@ Environment variables
   MODEL_PATH           optional local MLflow model directory (offline dev / tests);
                        overrides MODEL_URI when set
   MODEL_THRESHOLD      optional override; otherwise registry tag -> params.yaml
+  MODEL_POLL_SECONDS   how often each worker checks whether the champion alias moved (30)
 """
 
 from __future__ import annotations
@@ -29,6 +30,7 @@ log = logging.getLogger(__name__)
 ROOT = Path(__file__).resolve().parents[3]
 PARAMS_PATH = ROOT / "configs" / "params.yaml"
 RETRY_SECONDS = 15.0
+POLL_SECONDS = float(os.getenv("MODEL_POLL_SECONDS", "30"))
 
 
 def _params() -> dict:
@@ -51,8 +53,12 @@ class ModelBundle:
     uri: str
 
     def predict(self, records: list[dict]) -> list[dict]:
+        t0 = time.perf_counter()
         frame = pd.DataFrame.from_records(records)
+        t1 = time.perf_counter()
         scores = self.model.predict_proba(frame)[:, 1]
+        t2 = time.perf_counter()
+        print(f"frame={(t1 - t0) * 1e3:.1f} proba={(t2 - t1) * 1e3:.1f} ms rows={len(records)}", flush=True)
         return [
             {
                 "PatientId": record["PatientId"],
@@ -107,17 +113,27 @@ def load_bundle() -> ModelBundle:
     return ModelBundle(model=model, threshold=threshold, version=version, uri=uri)
 
 
-class ModelHolder:
-    """Holds the current model.
+def champion_version(uri: str) -> str | None:
+    """Current registry version behind an alias URI (models:/name@alias); None otherwise."""
+    if not uri.startswith("models:/") or "@" not in uri:
+        return None
+    return _registry_info(uri)[0]
 
-    Loading never happens inside a request (it would blow the latency SLO). At startup a
-    background thread retries until MLflow is up and a champion exists, so `docker compose up`
-    works even before the first model is registered. POST /reload swaps in a new champion
-    (e.g. after promote or rollback) without restarting the container.
+
+class ModelHolder:
+    """Holds the current model for one worker process.
+
+    Loading never happens inside a request (it would blow the latency SLO). A background thread
+    first retries until MLflow is up and a champion exists, so `docker compose up` works even
+    before the first model is registered. It then keeps polling the registry: when the champion
+    alias moves (promote or rollback) this worker reloads by itself. With several uvicorn
+    workers that matters, because POST /reload only reaches the one worker that received it.
     """
 
-    def __init__(self, loader=load_bundle) -> None:
+    def __init__(self, loader=load_bundle, version_of=champion_version, on_load=None) -> None:
         self._loader = loader
+        self._version_of = version_of
+        self._on_load = on_load
         self._lock = threading.Lock()
         self.bundle: ModelBundle | None = None
         self.last_error: str | None = None
@@ -125,10 +141,28 @@ class ModelHolder:
     def get(self) -> ModelBundle | None:
         return self.bundle
 
-    def load_in_background(self, retry_seconds: float = RETRY_SECONDS) -> threading.Thread:
+    def check_for_update(self) -> bool:
+        """Reload if the registry alias now points at another version. True if reloaded."""
+        bundle = self.bundle
+        if bundle is None:
+            return self.reload() is not None
+        try:
+            latest = self._version_of(bundle.uri)
+        except Exception as exc:  # registry unreachable: keep serving the current model
+            self.last_error = f"{type(exc).__name__}: {exc}"
+            return False
+        if latest is None or latest == bundle.version:
+            return False
+        log.info("Champion moved %s -> %s, reloading", bundle.version, latest)
+        return self.reload() is not bundle
+
+    def load_in_background(
+        self, retry_seconds: float = RETRY_SECONDS, poll_seconds: float = POLL_SECONDS
+    ) -> threading.Thread:
         def _run() -> None:
-            while self.reload() is None:
-                time.sleep(retry_seconds)
+            while True:
+                self.check_for_update()
+                time.sleep(retry_seconds if self.bundle is None else poll_seconds)
 
         thread = threading.Thread(target=_run, name="model-loader", daemon=True)
         thread.start()
@@ -139,6 +173,8 @@ class ModelHolder:
             try:
                 self.bundle = self._loader()
                 self.last_error = None
+                if self._on_load is not None:
+                    self._on_load(self.bundle)
             except Exception as exc:  # keep serving the old model if reload fails
                 self.last_error = f"{type(exc).__name__}: {exc}"
                 log.warning("Model load failed: %s", self.last_error)
