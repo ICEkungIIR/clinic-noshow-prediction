@@ -1,5 +1,8 @@
 FROM python:3.11.16-slim
 
+# LightGBM (Exp 2 champion) needs OpenMP at runtime; slim images do not ship it
+RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir uv==0.12.10
 WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy PYTHONUNBUFFERED=1
