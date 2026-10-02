@@ -36,5 +36,13 @@ pipeline: export PREFECT_API_URL ?= http://localhost:4200/api
 pipeline:   ## run the Prefect modeling and registry pipeline
 	uv run python -m noshow.pipeline.flow
 
-loadtest:   ## TODO(serving workstream): Locust p50/p95/throughput
-	@echo "not implemented yet"
+LT_USERS ?= 50
+LT_RATE ?= 10
+LT_TIME ?= 2m
+LT_HOST ?= http://localhost:8000
+
+loadtest:   ## Locust p50/p95/throughput vs configs/slo.yaml -> docs/loadtest_report.md
+	mkdir -p loadtest/results
+	uv run locust -f loadtest/locustfile.py --host $(LT_HOST) --headless \
+		-u $(LT_USERS) -r $(LT_RATE) -t $(LT_TIME) --csv loadtest/results/run --only-summary
+	uv run python scripts/check_slo.py loadtest/results/run --users $(LT_USERS) --duration $(LT_TIME)

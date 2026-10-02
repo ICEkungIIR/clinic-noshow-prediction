@@ -27,6 +27,7 @@ make setup      # ติดตั้ง Python 3.11 + dependencies ตาม uv.
 make data       # ดาวน์โหลดข้อมูล -> data/raw/noshow.csv และพิมพ์ SHA-256 (= data version)
 make test       # ruff + pytest
 make up         # เปิด API, MLflow, Prefect, Prometheus, Grafana
+make loadtest   # Locust p50/p95 เทียบ SLO -> docs/loadtest_report.md (ต้องเปิด API ก่อน)
 curl localhost:8000/health
 ```
 
@@ -63,7 +64,7 @@ src/noshow/
   features/    preprocessing ชุดเดียว ใช้ทั้ง train และ serve (กัน training-serving skew)
   models/      train, evaluate, gate
   registry/    MLflow registry: promote, rollback
-  serving/     FastAPI app (/predict, /predict_batch, /health, /metrics)
+  serving/     FastAPI app (/predict, /predict_batch, /health, /reload, /metrics) - docs/serving.md
   monitoring/  Evidently drift + retrain trigger
   pipeline/    Prefect flows (DAG)
 configs/       params.yaml, slo.yaml
