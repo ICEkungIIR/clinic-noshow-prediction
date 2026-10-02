@@ -1,4 +1,4 @@
-.PHONY: setup data train lint format test up down logs api pipeline loadtest
+.PHONY: setup data train lint format test up down logs api pipeline loadtest parity
 
 setup:      ## install Python 3.11 + locked dependencies
 	uv sync
@@ -40,9 +40,15 @@ LT_USERS ?= 50
 LT_RATE ?= 10
 LT_TIME ?= 2m
 LT_HOST ?= http://localhost:8000
+LT_NAME ?= run
+LT_LABEL ?= current
 
 loadtest:   ## Locust p50/p95/throughput vs configs/slo.yaml -> docs/loadtest_report.md
 	mkdir -p loadtest/results
 	uv run locust -f loadtest/locustfile.py --host $(LT_HOST) --headless \
-		--users $(LT_USERS) --spawn-rate $(LT_RATE) --run-time $(LT_TIME) --csv loadtest/results/run
-	uv run python scripts/check_slo.py loadtest/results/run --users $(LT_USERS) --duration $(LT_TIME)
+		--users $(LT_USERS) --spawn-rate $(LT_RATE) --run-time $(LT_TIME) --csv loadtest/results/$(LT_NAME)
+	uv run python scripts/check_slo.py loadtest/results/$(LT_NAME) --label "$(LT_LABEL)" \
+		--users $(LT_USERS) --duration $(LT_TIME)
+
+parity:     ## running API vs champion model scored locally (must be identical)
+	uv run python scripts/check_serving_parity.py
