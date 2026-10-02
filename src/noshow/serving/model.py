@@ -53,12 +53,8 @@ class ModelBundle:
     uri: str
 
     def predict(self, records: list[dict]) -> list[dict]:
-        t0 = time.perf_counter()
         frame = pd.DataFrame.from_records(records)
-        t1 = time.perf_counter()
         scores = self.model.predict_proba(frame)[:, 1]
-        t2 = time.perf_counter()
-        print(f"frame={(t1 - t0) * 1e3:.1f} proba={(t2 - t1) * 1e3:.1f} ms rows={len(records)}", flush=True)
         return [
             {
                 "PatientId": record["PatientId"],

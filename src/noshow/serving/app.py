@@ -111,10 +111,11 @@ def _require_model() -> ModelBundle:
 
 async def _score(appointments: list[Appointment]) -> list[dict]:
     bundle = _require_model()
-    t0 = time.perf_counter()
     results = await batcher.submit(bundle, [a.to_record() for a in appointments])
-    print(f"submit={(time.perf_counter() - t0) * 1e3:.1f} ms", flush=True)
-    ...
+    for item in results:
+        PREDICTIONS.labels(alert=str(item["alert"]).lower()).inc()
+        SCORES.observe(item["noshow_score"])
+    return results
 
 
 @app.get("/health")
