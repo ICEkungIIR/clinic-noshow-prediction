@@ -17,6 +17,7 @@ threshold อ่านจาก tag `threshold` ของ model version เด�
 | `src/noshow/serving/schemas.py` | Pydantic schema ของ input/output และกฎ validation |
 | `src/noshow/serving/model.py` | โหลดโมเดล/threshold จาก registry, ทำนาย, reload, ตรวจ champion ทุก 30 วิ |
 | `src/noshow/serving/batching.py` | micro-batching: รวม request ที่มาพร้อมกันเป็นการเรียก pipeline ครั้งเดียว |
+| `src/noshow/serving/profiling.py` | จับเวลาแต่ละขั้น (เปิดด้วย `SERVING_PROFILE=1`) |
 | `tests/test_serving_model.py`, `tests/test_serving_api.py` | unit + API tests (ใช้โมเดลจำลอง ไม่ต้องมี MLflow) |
 | `loadtest/locustfile.py` | Locust load test |
 | `scripts/check_slo.py` | เทียบผล load test กับ `configs/slo.yaml` → `docs/loadtest_report.md` |
@@ -78,6 +79,7 @@ API เปิดได้แม้ MLflow ยังไม่มี champion: thr
 | `MICROBATCH_MAX_WAIT_MS` | `0` | เวลารอ request เพิ่มก่อนทำนาย (0 = ไม่รอ, ไม่เพิ่ม latency ตอนโหลดน้อย) |
 | `OMP_NUM_THREADS` | `1` (Docker) | LightGBM ใช้ 1 thread ต่อการเรียก กันหลาย worker แย่ง core |
 | `PROMETHEUS_MULTIPROC_DIR` | `/tmp/prometheus` (Docker) | ให้ `/metrics` รวมตัวเลขจากทุก worker |
+| `SERVING_PROFILE` | `0` | `1` = จับเวลาแต่ละขั้นของ pipeline (ใน compose ใช้ `API_PROFILE`) |
 
 ## วิธีรัน
 
@@ -160,6 +162,50 @@ uv run python scripts/check_serving_parity.py
 
 ส่วนวิเคราะห์และข้อเสนอ SLO ให้เขียนใต้บรรทัด `<!-- notes ... -->` ใน `docs/loadtest_report.md`
 (สคริปต์จะเก็บส่วนนั้นไว้ทุกครั้งที่สร้างรายงานใหม่)
+
+## Latency breakdown: HTTP / feature builder / ColumnTransformer / LightGBM
+
+ผลการวัดและข้อสรุปอยู่ใน `docs/latency_breakdown.md`
+
+ใช้หาว่าเวลา p50 ของ `/predict` หมดไปกับขั้นไหน ก่อนตัดสินใจ optimize (ยังไม่ได้แก้ `features/`)
+
+- `SERVING_PROFILE=1` (ใน compose: `API_PROFILE=1`) ทำให้ API เรียก pipeline ทีละขั้นแทน `predict_proba` ครั้งเดียว
+  แล้วบันทึกเวลาแต่ละขั้นลง histogram `noshow_stage_seconds` คะแนนเหมือนเดิมทุกบิต
+  (`tests/test_serving_profiling.py` เทียบแบบ bit-for-bit) ค่าเริ่มต้นปิดไว้
+- `scripts/profile_serving.py offline` รันใน container ไม่ผ่าน HTTP วัดทีละขั้นที่ 1 / 8 / 32 แถวต่อครั้ง
+- `scripts/profile_serving.py http` ยิงทีละ request รันได้ทั้งใน container และบน host ส่วนต่างคือต้นทุนของ port forwarding
+- `scripts/profile_serving.py load` รันบนเครื่อง host ยิง Locust แล้วเทียบเวลาที่ client เห็นกับเวลาใน app
+  ส่วนต่างของค่าเฉลี่ย = HTTP + network + client
+
+```bat
+:: 1) เปิด profiling (2 workers + batching 32 เหมือนค่าที่ใช้จริง)
+set API_WORKERS=2
+set API_BATCH=32
+set API_PROFILE=1
+docker compose up -d --build api
+curl localhost:8000/health
+
+:: 2) ไม่มีโหลด: แยกเวลาทีละขั้นใน container
+docker compose exec -T api python - offline < scripts\profile_serving.py > loadtest\results\profile_offline.md
+
+:: 2b) HTTP ทีละ request: จากในตัว container (ไม่ผ่าน port forwarding) เทียบกับจาก Windows
+docker compose exec -T api python - http --rounds 200 < scripts\profile_serving.py > loadtest\results\profile_http_inside.md
+uv run python scripts/profile_serving.py http --rounds 200 > loadtest\results\profile_http_host.md
+
+:: 3) โหลดเบา (1 user) และ 50 users
+uv run python scripts/profile_serving.py load --users 1 --spawn-rate 1 --run-time 1m --name prof1
+uv run python scripts/profile_serving.py load --users 50 --run-time 2m --name prof50
+
+:: 3b) 50 users จาก client ในเครือข่าย Docker (ไม่ผ่าน Windows port forwarding) รอบแรก 30 วิคือ warm-up
+docker run --rm --network clinic-noshow-prediction_default -v "%cd%":/mnt/locust locustio/locust -f /mnt/locust/loadtest/locustfile.py --host http://api:8000 --headless --users 50 --spawn-rate 10 --run-time 30s --only-summary
+docker run --rm --network clinic-noshow-prediction_default -v "%cd%":/mnt/locust locustio/locust -f /mnt/locust/loadtest/locustfile.py --host http://api:8000 --headless --users 50 --spawn-rate 10 --run-time 2m --csv /mnt/locust/loadtest/results/net50b --only-summary
+
+:: 4) ผลโมเดลต้องเหมือนเดิมทั้งตอนเปิดและปิด profiling
+uv run python scripts/check_serving_parity.py
+set API_PROFILE=0
+docker compose up -d api
+uv run python scripts/check_serving_parity.py
+```
 
 ## Metrics สำหรับ Monitoring
 
