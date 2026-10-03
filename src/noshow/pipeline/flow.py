@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import hashlib
+import json
+import os
 from pathlib import Path
+from urllib.request import Request, urlopen
 
 import pandas as pd
 import yaml
@@ -152,6 +155,52 @@ def promote_model(gate_result: dict, tracking_uri: str) -> dict:
     return result
 
 
+@task(name="deploy", cache_policy=NONE)
+def deploy_model(promotion: dict) -> dict:
+    api_url = os.getenv("NOSHOW_API_URL", "http://localhost:8000").rstrip("/")
+    request = Request(f"{api_url}/reload", method="POST")
+
+    with urlopen(request, timeout=120) as response:
+        result = json.load(response)
+
+    expected = str(promotion["champion_version"])
+    loaded = str(result.get("model_version"))
+    if loaded != expected:
+        raise RuntimeError(f"API loaded version {loaded}; expected champion version {expected}")
+
+    get_run_logger().info("API loaded champion version %s", loaded)
+    return result
+
+
+def send_discord_alert(message: str) -> None:
+    webhook = os.getenv("PIPELINE_DISCORD_WEBHOOK_URL", "").strip()
+    if not webhook:
+        print("Discord notification skipped: webhook is not configured")
+        return
+
+    separator = "&" if "?" in webhook else "?"
+    payload = {
+        "content": message[:2000],
+        "allowed_mentions": {"parse": []},
+    }
+
+    try:
+        request = Request(
+            f"{webhook}{separator}wait=true",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "User-Agent": "Clinic-NoShow-Pipeline/0.1",
+            },
+            method="POST",
+        )
+        with urlopen(request, timeout=15) as response:
+            response.read()
+        print("Discord failure notification sent")
+    except Exception as exc:
+        print(f"Discord notification failed ({type(exc).__name__})")
+
+
 def notify_failure(flow, flow_run, state) -> None:
     message = (
         f"Flow: {flow.name}\n\n"
@@ -161,11 +210,17 @@ def notify_failure(flow, flow_run, state) -> None:
         f"Reason: {state.message}"
     )
     print(f"PIPELINE FAILURE\n{message}")
-    create_markdown_artifact(
-        key="clinic-noshow-pipeline-failure",
-        markdown=message,
-        description="Pipeline failure report",
-    )
+
+    try:
+        create_markdown_artifact(
+            key="clinic-noshow-pipeline-failure",
+            markdown=message,
+            description="Pipeline failure report",
+        )
+    except Exception as exc:
+        print(f"Failure artifact creation failed ({type(exc).__name__})")
+
+    send_discord_alert(f"PIPELINE FAILURE\n{message}")
 
 
 @flow(
@@ -186,6 +241,7 @@ def pipeline() -> dict:
     registered = register_model(evaluated, tracking_uri)
     gate_result = gate_model(registered, tracking_uri)
     promotion = promote_model(gate_result, tracking_uri) if gate_result["passed"] else None
+    deployment = deploy_model(promotion) if promotion is not None else None
 
     return {
         "validated_rows": len(validated),
@@ -198,6 +254,7 @@ def pipeline() -> dict:
         "challenger_version": registered["version"],
         "gate_passed": gate_result["passed"],
         "promotion_status": ("promoted" if promotion is not None else "not_promoted"),
+        "deployment": deployment,
     }
 
 

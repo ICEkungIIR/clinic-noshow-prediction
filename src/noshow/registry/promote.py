@@ -8,8 +8,12 @@ from mlflow import MlflowClient
 from noshow.registry.gate import check_gate
 
 
-def promote(tracking_uri: str) -> dict:
-    result = check_gate(tracking_uri)
+def promote(tracking_uri: str, model_name: str | None = None) -> dict:
+    result = (
+        check_gate(tracking_uri)
+        if model_name is None
+        else check_gate(tracking_uri, model_name=model_name)
+    )
     if not result["passed"]:
         raise ValueError(f"Gate failed: {result['failures']}")
 
