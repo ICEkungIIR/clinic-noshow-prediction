@@ -25,6 +25,8 @@ from typing import Any
 import pandas as pd
 import yaml
 
+from noshow.serving import profiling
+
 log = logging.getLogger(__name__)
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -53,8 +55,18 @@ class ModelBundle:
     uri: str
 
     def predict(self, records: list[dict]) -> list[dict]:
-        frame = pd.DataFrame.from_records(records)
-        scores = self.model.predict_proba(frame)[:, 1]
+        if profiling.ENABLED:
+            start = time.perf_counter()
+            frame = pd.DataFrame.from_records(records)
+            profiling.observe("frame", time.perf_counter() - start)
+            proba, timings = profiling.timed_predict_proba(self.model, frame)
+            for stage, seconds in timings.items():
+                profiling.observe(stage, seconds)
+            profiling.BATCH_ROWS.observe(len(records))
+            scores = proba[:, 1]
+        else:
+            frame = pd.DataFrame.from_records(records)
+            scores = self.model.predict_proba(frame)[:, 1]
         return [
             {
                 "PatientId": record["PatientId"],
