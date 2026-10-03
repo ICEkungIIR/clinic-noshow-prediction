@@ -123,6 +123,8 @@ uv run python -m noshow.ci.model_gate
 |---|---|
 | [https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/37118805815](https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/37118805815) | `code-quality` ✅, `data-validation` ✅, `model-gate` ✅ |
 
+![PR #16: ทั้ง 3 jobs ผ่าน](ci_evidence/01_pass_pr16_all_jobs.png)
+
 ### ไม่ผ่าน (A): CI จับปัญหาจริงในงานของทีม
 
 ก่อนจะมีงานนี้ workflow มีแค่ `code-quality` แต่ CI ก็จับปัญหาจริงได้แล้ว 2 ครั้ง
@@ -137,6 +139,10 @@ uv run python -m noshow.ci.model_gate
 ใน commit `21d3193` ฟังก์ชัน `_score()` คำนวณ `results` แล้วไม่ได้ `return` ออกไป (เหลือโค้ด debug ค้างไว้)
 ถ้า merge ไป `/predict` จะไม่ได้ผลทำนาย ruff ตรวจเจอว่าตัวแปร `results` ไม่ถูกใช้ CI จึง fail
 เจ้าของงานแก้ใน commit `f005699` (คืนค่า `results`) แล้ว CI ผ่าน
+
+![Serving: lint fail](ci_evidence/02_real_fail_serving_lint.png)
+![Serving: ผ่านหลังแก้](ci_evidence/03_real_pass_serving_after_fix.png)
+
 นี่คือตัวอย่างที่ Lecture 10 บอกว่า "ทุกการเปลี่ยนแปลงถูกทดสอบผ่านระบบอัตโนมัติก่อนเสมอ"
 
 **2. Data: PR ถูก merge ทั้งที่ CI ยังแดง ทำให้ `main` แดงตาม**
@@ -146,6 +152,9 @@ uv run python -m noshow.ci.model_gate
 | [https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/36578454159](https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/36578454159) | PR (`12429d5`) | ❌ Lint: `E501 Line too long` (`scripts/eda.py:104`) |
 | [https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/36587968341](https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/36587968341) | push `main` หลัง merge PR #9 | ❌ `main` แดง |
 | [https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/36591924613](https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/36591924613) | push `main` หลังแก้ | ✅ |
+
+![PR #9: lint fail](ci_evidence/04_real_fail_data_pr9.png)
+![main แดงหลัง merge PR #9](ci_evidence/05_real_fail_main_after_merge.png)
 
 บทเรียน: CI จะมีประโยชน์ก็ต่อเมื่อทีมไม่ merge PR ที่ยังแดง
 ควรตั้ง branch protection ให้ `main` บังคับว่า CI ต้องผ่านก่อน merge (ต้องให้ admin ของ repo ตั้งค่า)
@@ -158,6 +167,9 @@ uv run python -m noshow.ci.model_gate
 |---|---|---|
 | [https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/37119537630](https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/37119537630) | โมเดลแย่ `bad_model_results.json` (PR-AUC 0.25, recall 0.55) | `code-quality` ✅, `data-validation` ✅, `model-gate` ❌ |
 | [https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/37119548971](https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/37119548971) | ข้อมูลเสีย `bad_data_cases.csv` แทนข้อมูลดี | `code-quality` ✅, `data-validation` ❌, `model-gate` ⏭ skipped (เพราะ `needs`) |
+
+![Demo: model-gate fail](ci_evidence/06_demo_fail_model_gate.png)
+![Demo: data-validation fail, model-gate skipped](ci_evidence/07_demo_fail_data_validation.png)
 
 ## Test cases สำหรับวันนำเสนอ
 
