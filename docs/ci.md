@@ -117,16 +117,47 @@ uv run python -m noshow.ci.model_gate
 
 ## หลักฐาน CI (ผ่าน / ไม่ผ่าน)
 
-- **ผ่าน:** run ของ PR งานนี้ (3 jobs เขียวทั้งหมด)
-- **ไม่ผ่าน:** เปิด PR ทดลองจาก branch `ci-demo-fail` ที่ตั้งใจทำผิดหนึ่งจุด แล้วปิด PR โดยไม่ merge
-  - ทำให้ `data-validation` fail: ใส่แถวที่ Gender = `X` ลงใน `good_data.csv` → job fail และ `model-gate` ถูกข้าม (skipped) เพราะ `needs`
-  - ทำให้ `model-gate` fail: ใช้ `tests/fixtures/bad_model_results.json` (PR-AUC 0.25, recall 0.55)
+### ผ่าน: PR #16 (งานนี้)
 
-| หลักฐาน | Link run | Screenshot |
+| Run | ผล |
+|---|---|
+| [https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/37118805815](https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/37118805815) | `code-quality` ✅, `data-validation` ✅, `model-gate` ✅ |
+
+### ไม่ผ่าน (A): CI จับปัญหาจริงในงานของทีม
+
+ก่อนจะมีงานนี้ workflow มีแค่ `code-quality` แต่ CI ก็จับปัญหาจริงได้แล้ว 2 ครั้ง
+
+**1. Serving: CI จับ bug ที่ทำให้ API ไม่ส่งผลทำนายกลับ**
+
+| Run | Commit | ผล |
 |---|---|---|
-| ผ่านทั้งหมด | (ใส่ link) | (ใส่ภาพ) |
-| data-validation fail | (ใส่ link) | (ใส่ภาพ) |
-| model-gate fail | (ใส่ link) | (ใส่ภาพ) |
+| [https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/37031890088](https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/37031890088) | `21d3193` | ❌ Lint: `F841 Local variable results is assigned to but never used` (`src/noshow/serving/app.py:115`) |
+| [https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/37032877777](https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/37032877777) | `f005699` | ✅ หลังแก้ |
+
+ใน commit `21d3193` ฟังก์ชัน `_score()` คำนวณ `results` แล้วไม่ได้ `return` ออกไป (เหลือโค้ด debug ค้างไว้)
+ถ้า merge ไป `/predict` จะไม่ได้ผลทำนาย ruff ตรวจเจอว่าตัวแปร `results` ไม่ถูกใช้ CI จึง fail
+เจ้าของงานแก้ใน commit `f005699` (คืนค่า `results`) แล้ว CI ผ่าน
+นี่คือตัวอย่างที่ Lecture 10 บอกว่า "ทุกการเปลี่ยนแปลงถูกทดสอบผ่านระบบอัตโนมัติก่อนเสมอ"
+
+**2. Data: PR ถูก merge ทั้งที่ CI ยังแดง ทำให้ `main` แดงตาม**
+
+| Run | Event | ผล |
+|---|---|---|
+| [https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/36578454159](https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/36578454159) | PR (`12429d5`) | ❌ Lint: `E501 Line too long` (`scripts/eda.py:104`) |
+| [https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/36587968341](https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/36587968341) | push `main` หลัง merge PR #9 | ❌ `main` แดง |
+| [https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/36591924613](https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/36591924613) | push `main` หลังแก้ | ✅ |
+
+บทเรียน: CI จะมีประโยชน์ก็ต่อเมื่อทีมไม่ merge PR ที่ยังแดง
+ควรตั้ง branch protection ให้ `main` บังคับว่า CI ต้องผ่านก่อน merge (ต้องให้ admin ของ repo ตั้งค่า)
+
+### ไม่ผ่าน (B): ทดสอบว่า job ใหม่บล็อกได้จริง
+
+ใช้ branch ทิ้ง `ci-demo-fail` แก้เฉพาะ `ci.yml` ให้ป้อนของเสียเข้าไป (ไม่ merge)
+
+| Run | ป้อนอะไร | ผล |
+|---|---|---|
+| [https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/37119537630](https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/37119537630) | โมเดลแย่ `bad_model_results.json` (PR-AUC 0.25, recall 0.55) | `code-quality` ✅, `data-validation` ✅, `model-gate` ❌ |
+| [https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/37119548971](https://github.com/KKU-Noshow-clinic/clinic-noshow-prediction/actions/runs/37119548971) | ข้อมูลเสีย `bad_data_cases.csv` แทนข้อมูลดี | `code-quality` ✅, `data-validation` ❌, `model-gate` ⏭ skipped (เพราะ `needs`) |
 
 ## Test cases สำหรับวันนำเสนอ
 
