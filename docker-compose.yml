@@ -12,6 +12,7 @@ services:
       # Performance knobs, set from the shell without editing this file (docs/serving.md):
       WEB_CONCURRENCY: ${API_WORKERS:-2}           # uvicorn worker processes
       MICROBATCH_MAX_SIZE: ${API_BATCH:-32}        # rows per pipeline call; 1 = batching off
+      SERVING_PROFILE: ${API_PROFILE:-0}           # 1 = per-stage timing in /metrics
     depends_on: [mlflow]
 
   mlflow:

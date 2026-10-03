@@ -14,7 +14,9 @@ from __future__ import annotations
 
 import asyncio
 import os
+import time
 
+from noshow.serving import profiling
 from noshow.serving.model import ModelBundle
 
 MAX_SIZE = int(os.getenv("MICROBATCH_MAX_SIZE", "32"))
@@ -45,7 +47,7 @@ class MicroBatcher:
         """Queue one request (1 row for /predict, many for /predict_batch) and await its rows."""
         queue = self._ensure_worker()
         future = asyncio.get_running_loop().create_future()
-        queue.put_nowait((bundle, records, future))
+        queue.put_nowait((bundle, records, future, time.perf_counter()))
         return await future
 
     async def _collect(self, queue: asyncio.Queue) -> list[tuple]:
@@ -72,23 +74,27 @@ class MicroBatcher:
         loop = asyncio.get_running_loop()
         while True:
             batch = await self._collect(queue)
-            self.batch_sizes = (self.batch_sizes + [sum(len(r) for _, r, _ in batch)])[-1000:]
+            self.batch_sizes = (self.batch_sizes + [sum(len(item[1]) for item in batch)])[-1000:]
+            if profiling.ENABLED:
+                started = time.perf_counter()
+                for item in batch:
+                    profiling.observe("queue_wait", started - item[3])
             # Usually one model; split if a reload happened while requests were queued.
             groups: dict[int, list[tuple]] = {}
             for item in batch:
                 groups.setdefault(id(item[0]), []).append(item)
             for items in groups.values():
                 bundle = items[0][0]
-                rows = [row for _, records, _ in items for row in records]
+                rows = [row for item in items for row in item[1]]
                 try:
                     results = await loop.run_in_executor(None, bundle.predict, rows)
                 except Exception as exc:
-                    for _, _, future in items:
-                        if not future.done():
-                            future.set_exception(exc)
+                    for item in items:
+                        if not item[2].done():
+                            item[2].set_exception(exc)
                     continue
                 start = 0
-                for _, records, future in items:
+                for _, records, future, _ in items:
                     if not future.done():
                         future.set_result(results[start : start + len(records)])
                     start += len(records)

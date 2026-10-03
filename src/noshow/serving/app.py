@@ -11,6 +11,7 @@ Scaling (see docs/serving.md)
   WEB_CONCURRENCY           uvicorn worker processes (Dockerfile default 2)
   PROMETHEUS_MULTIPROC_DIR  set in Docker so /metrics sums all workers
   MICROBATCH_*              concurrent requests share one pipeline call (serving/batching.py)
+  SERVING_PROFILE=1         per-stage timing histograms (serving/profiling.py), off by default
 """
 
 import os
@@ -31,6 +32,7 @@ from prometheus_client import (
 )
 
 from noshow import __version__
+from noshow.serving import profiling
 from noshow.serving.batching import MicroBatcher
 from noshow.serving.model import ModelBundle, ModelHolder
 from noshow.serving.schemas import Appointment, BatchRequest, BatchResponse, Prediction
@@ -94,7 +96,10 @@ async def metrics_middleware(request: Request, call_next):
     start = time.perf_counter()
     response = await call_next(request)
     path = request.url.path
-    LATENCY.labels(path=path).observe(time.perf_counter() - start)
+    elapsed = time.perf_counter() - start
+    LATENCY.labels(path=path).observe(elapsed)
+    if profiling.ENABLED and path in ("/predict", "/predict_batch"):
+        profiling.observe(f"in_app_{path}", elapsed)
     REQUESTS.labels(path=path, method=request.method, status=response.status_code).inc()
     return response
 
@@ -130,6 +135,8 @@ def health() -> dict:
         "threshold": bundle.threshold if bundle else None,
         "last_error": holder.last_error,
         "pid": os.getpid(),
+        "workers": int(os.getenv("WEB_CONCURRENCY", "1")),
+        "profiling": profiling.ENABLED,
     }
 
 
